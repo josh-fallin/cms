@@ -1,3 +1,5 @@
-<app-header></app-header>
-<app-contacts></app-contacts>
+<app-header (onSelectFire)="loadedSection = $event"></app-header>
+<app-contacts *ngIf="loadedSection === 'contacts'"></app-contacts>
+<app-documents *ngIf="loadedSection === 'documents'"></app-documents>
+<app-messages *ngIf="loadedSection === 'messages'"></app-messages>
 
