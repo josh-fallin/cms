@@ -1,9 +1,12 @@
 <div class="row pad-left-right">
   <div class="col-md-5">
-    <app-document-list></app-document-list>
+    <app-document-list (selectedDocumentFire)="selectedDocument = $event"></app-document-list>
   </div>
   <div class="col-md-4">
-    <app-document-detail></app-document-detail>
+    <app-document-detail *ngIf="selectedDocument; else infoText" [document]="selectedDocument"></app-document-detail>
+    <ng-template #infoText>
+      <p>Select a document to view details.</p>
+  </ng-template>
   </div>
 </div>
 
