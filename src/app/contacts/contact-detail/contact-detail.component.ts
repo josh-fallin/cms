@@ -13,6 +13,7 @@ import { ContactsService } from '../contacts.service';
 })
 export class ContactDetailComponent implements OnInit {
   contact: Contact;
+  contactGroup: Contact[] = [];
   id: string;
 
 
@@ -25,6 +26,9 @@ export class ContactDetailComponent implements OnInit {
       (params: Params) => {
         this.id = params['id'];
         this.contact = this.contactsService.getContact(this.id);
+        if (this.contact.group) {
+          this.contactGroup = this.contact.group;
+        }
       }
     );
   }

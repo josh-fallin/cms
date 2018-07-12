@@ -34,14 +34,12 @@ export class ContactsService {
 
   getMaxId(): number {
     let maxId = 0;
-
     this.contacts.forEach(function(contact) {
       let currentId = +contact.id;
       if (currentId > maxId) {
         maxId = currentId;
       }
     })
-
     return maxId;
   }
 
@@ -53,7 +51,21 @@ export class ContactsService {
     contact.id = '' + this.maxContactId;
     this.contacts.push(contact);
     this.contactListChanged.next(this.contacts.slice());
+  }
 
+  updateContact(originalContact: Contact, updatedContact: Contact) {
+    if (originalContact === null || updatedContact === null) {
+      return;
+    }
+
+    let pos = this.contacts.indexOf(originalContact);
+    if (pos < 0) {
+      return;
+    }
+
+    updatedContact.id = originalContact.id;
+    this.contacts[pos] = updatedContact;
+    this.contactListChanged.next(this.contacts.slice());
   }
 
   deleteContact(contact: Contact) {
@@ -64,7 +76,6 @@ export class ContactsService {
 
     this.contacts.splice(pos, 1);
     this.contactListChanged.next(this.contacts.slice());
-
   }
 
 }

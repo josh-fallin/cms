@@ -8,6 +8,7 @@ import { Subject } from 'rxjs';
 })
 export class DocumentsService {
   documentListChanged = new Subject<Document[]>();
+  startedEditing = new Subject<number>();
   documents: Document[] = [];
   maxDocumentId: number;
 
