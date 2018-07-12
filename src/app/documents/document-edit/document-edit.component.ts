@@ -6,6 +6,9 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./document-edit.component.css']
 })
 export class DocumentEditComponent implements OnInit {
+  originalDocument: Document;
+  document: Document;
+  editMode = false;
 
   constructor() { }
 

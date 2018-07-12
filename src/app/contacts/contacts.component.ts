@@ -13,10 +13,10 @@ export class ContactsComponent implements OnInit {
   constructor(private contactsService: ContactsService) { }
 
   ngOnInit() {
-    this.contactsService.contactSelectedEvent
-    .subscribe(
-      (contact: Contact) => {this.selectedContact = contact;}
-    );
+    // this.contactsService.contactSelectedEvent
+    // .subscribe(
+    //   (contact: Contact) => {this.selectedContact = contact;}
+    // );
   }
 
 }
