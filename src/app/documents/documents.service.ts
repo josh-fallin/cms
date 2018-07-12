@@ -1,17 +1,19 @@
-import { Injectable, Output, EventEmitter } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Document } from './document.model';
 import { MOCKDOCUMENTS } from './MOCKDOCUMENTS';
+import { Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DocumentsService {
-  @Output() documentSelectedEvent = new EventEmitter<Document>();
-  @Output() documentChangedEvent = new EventEmitter<Document[]>();
+  documentListChanged = new Subject<Document[]>();
   documents: Document[] = [];
+  maxDocumentId: number;
 
   constructor() {
     this.documents = MOCKDOCUMENTS;
+    this.maxDocumentId = this.getMaxId();
   }
 
   getDocument(id: string) {
@@ -28,6 +30,44 @@ export class DocumentsService {
     return this.documents.slice();
   }
 
+  getMaxId(): number {
+    let maxId = 0;
+
+    this.documents.forEach(function(document) {
+      let currentId = +document.id;
+      if (currentId > maxId) {
+        maxId = currentId;
+      }
+    })
+
+    return maxId;
+  }
+
+  addDocument(document: Document) {
+    if (document == null) {
+      return;
+    }
+    this.maxDocumentId++;
+    document.id = '' + this.maxDocumentId;
+    this.documents.push(document);
+    this.documentListChanged.next(this.documents.slice());
+  }
+
+  updateDocument(originalDocument: Document, updatedDocument: Document) {
+    if (originalDocument == null || updatedDocument == null) {
+      return;
+    }
+
+    let pos = this.documents.indexOf(originalDocument);
+    if (pos < 0) {
+      return;
+    }
+
+    updatedDocument.id = originalDocument.id;
+    this.documents[pos] = updatedDocument;
+    this.documentListChanged.next(this.documents.slice());
+  }
+
   deleteDocument(document: Document) {
     if (document === null) { return; }
 
@@ -35,7 +75,7 @@ export class DocumentsService {
     if (pos < 0) { return; }
 
     this.documents.splice(pos, 1);
-    this.documentChangedEvent.emit(this.documents.slice());
+    this.documentListChanged.next(this.documents.slice());
   }
   
 }
