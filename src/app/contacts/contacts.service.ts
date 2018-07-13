@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
+import { Http, Response, Headers } from '@angular/http';
+import { map } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 
 import { Contact } from './contact.model';
-import { MOCKCONTACTS } from './MOCKCONTACTS';
 
 
 @Injectable({
@@ -13,9 +14,34 @@ export class ContactsService {
   contacts: Contact[] = [];
   maxContactId: number;
 
-  constructor() {
-    this.contacts = MOCKCONTACTS;
-    this.maxContactId = this.getMaxId();
+  constructor(private http: Http) {
+    this.initContacts();
+  }
+
+  initContacts() {
+    this.http.get('https://cit-366-cms.firebaseio.com/contacts.json')
+    .pipe(map(
+      (response: Response) => {
+        const data: Contact[] = response.json();
+        return data;
+      }
+    )).subscribe(
+      (contacts: Contact[]) => {
+        this.contacts = contacts;
+        this.maxContactId = this.getMaxId();
+        this.contactListChanged.next(this.contacts.slice());
+      }
+    );
+  }
+
+  storeContacts() {
+    const headers = new Headers({'Content-Type': 'application/json'});
+    this.http.put('https://cit-366-cms.firebaseio.com/contacts.json', JSON.stringify(this.contacts), {headers: headers})
+      .subscribe(
+        () => {
+          this.contactListChanged.next(this.contacts.slice());
+        }
+      );
   }
 
   getContact(id: string) 
@@ -50,7 +76,7 @@ export class ContactsService {
     this.maxContactId++;
     contact.id = '' + this.maxContactId;
     this.contacts.push(contact);
-    this.contactListChanged.next(this.contacts.slice());
+    this.storeContacts();
   }
 
   updateContact(originalContact: Contact, updatedContact: Contact) {
@@ -65,7 +91,7 @@ export class ContactsService {
 
     updatedContact.id = originalContact.id;
     this.contacts[pos] = updatedContact;
-    this.contactListChanged.next(this.contacts.slice());
+    this.storeContacts();
   }
 
   deleteContact(contact: Contact) {
@@ -75,7 +101,7 @@ export class ContactsService {
     if (pos < 0) { return; }
 
     this.contacts.splice(pos, 1);
-    this.contactListChanged.next(this.contacts.slice());
+    this.storeContacts();
   }
 
 }

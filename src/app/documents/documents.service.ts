@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
-import { Document } from './document.model';
-import { MOCKDOCUMENTS } from './MOCKDOCUMENTS';
+import { Http, Response, Headers } from '@angular/http';
+import { map } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+
+import { Document } from './document.model';
 
 @Injectable({
   providedIn: 'root'
@@ -12,9 +14,34 @@ export class DocumentsService {
   documents: Document[] = [];
   maxDocumentId: number;
 
-  constructor() {
-    this.documents = MOCKDOCUMENTS;
-    this.maxDocumentId = this.getMaxId();
+  constructor(private http: Http) {
+    this.initDocuments();
+  }
+
+  initDocuments() {
+    this.http.get('https://cit-366-cms.firebaseio.com/documents.json')
+      .pipe(map(
+        (response: Response) => {
+          const data: Document[] = response.json();
+          return data;
+        }
+      )).subscribe(
+        (documents: Document[]) => {
+          this.documents = documents;
+          this.maxDocumentId = this.getMaxId();
+          this.documentListChanged.next(this.documents.slice());
+        }
+      );
+  }
+
+  storeDocuments() {
+    const headers = new Headers({'Content-Type': 'application/json'});
+    this.http.put('https://cit-366-cms.firebaseio.com/documents.json', JSON.stringify(this.documents), {headers: headers})
+      .subscribe(
+        () => {
+          this.documentListChanged.next(this.documents.slice());
+        }
+      );
   }
 
   getDocument(id: string) {
@@ -33,14 +60,12 @@ export class DocumentsService {
 
   getMaxId(): number {
     let maxId = 0;
-
     this.documents.forEach(function(document) {
       let currentId = +document.id;
       if (currentId > maxId) {
         maxId = currentId;
       }
     })
-
     return maxId;
   }
 
@@ -51,7 +76,7 @@ export class DocumentsService {
     this.maxDocumentId++;
     document.id = '' + this.maxDocumentId;
     this.documents.push(document);
-    this.documentListChanged.next(this.documents.slice());
+    this.storeDocuments();
   }
 
   updateDocument(originalDocument: Document, updatedDocument: Document) {
@@ -66,7 +91,7 @@ export class DocumentsService {
 
     updatedDocument.id = originalDocument.id;
     this.documents[pos] = updatedDocument;
-    this.documentListChanged.next(this.documents.slice());
+    this.storeDocuments();
   }
 
   deleteDocument(document: Document) {
@@ -76,7 +101,7 @@ export class DocumentsService {
     if (pos < 0) { return; }
 
     this.documents.splice(pos, 1);
-    this.documentListChanged.next(this.documents.slice());
+    this.storeDocuments();
   }
   
 }

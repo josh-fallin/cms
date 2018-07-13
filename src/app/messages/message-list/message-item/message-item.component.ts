@@ -1,4 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core';
+import { Http, Response, Headers } from '@angular/http';
+import { map } from 'rxjs/operators';
+
 import { Message } from '../../message.model';
 import { ContactsService } from '../../../contacts/contacts.service';
 import { Contact } from '../../../contacts/contact.model';
@@ -10,14 +13,29 @@ import { Contact } from '../../../contacts/contact.model';
 })
 export class MessageItemComponent implements OnInit {
   @Input() message: Message;
-  messageSender: string = '';
   canEdit: boolean = false;
+  messageSender: string = '';
 
-  constructor(private contactsService: ContactsService) { }
+  constructor(private contactsService: ContactsService, private http: Http) { }
 
   ngOnInit() {
-    let contact: Contact = this.contactsService.getContact(this.message.sender);
-    this.messageSender = contact.name;
+    // works but it is very slow -> need to find a better option
+    this.http.get('https://cit-366-cms.firebaseio.com/contacts.json')
+    .pipe(map(
+      (response: Response) => {
+        const data: Contact[] = response.json();
+        for (let i = 0; i < data.length; i++) {
+          if (data[i].id === this.message.sender) {
+            return data[i].name;
+          }
+        }
+        return null;
+      }
+    )).subscribe(
+      (name: string) => {
+        this.messageSender = name;
+      }
+    );
   }
 
 }
